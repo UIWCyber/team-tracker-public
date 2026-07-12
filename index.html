@@ -50,6 +50,10 @@ font-size:.82rem;font-weight:800}
 .delta{font-size:.75rem;margin-top:.6rem;color:var(--txt2)}
 .delta b.up{color:var(--emerald)}.delta b.dn{color:var(--rose)}
 .empty{color:var(--muted);padding:2.5rem;text-align:center;border:1px dashed var(--border);border-radius:14px}
+.alert{background:rgba(245,158,11,.09);border:1px solid rgba(245,158,11,.3);border-radius:14px;
+padding:.9rem 1.2rem;margin-bottom:1.2rem;font-size:.85rem;color:var(--txt2)}
+.alert b{color:var(--amber)}
+th.sortable{cursor:pointer;user-select:none}th.sortable:hover{color:var(--txt)}
 .detail{background:var(--card);border:1px solid var(--border);border-radius:16px;
 padding:1.3rem;margin-top:1.2rem;display:none}
 .detail h3{font-size:1.05rem;margin-bottom:.6rem}
@@ -79,8 +83,9 @@ Data refreshes weekly and whenever the registry changes.</div>
 </main>
 <script>const DATA={"term": "Fall 2026", "generated": "2026-07-12", "courses": [{"code": "CSEC-2300", "name": "Foundations of Cyber Security", "start": "2026-08-24", "end": "2026-12-11", "expectedPct": 0, "teams": []}, {"code": "CIS-3353", "name": "Cyber Security", "start": "2026-08-24", "end": "2026-12-11", "expectedPct": 0, "teams": []}, {"code": "CIS-4390", "name": "CIS Capstone", "start": "2026-08-24", "end": "2026-12-11", "expectedPct": 0, "teams": []}, {"code": "CSEC-4390", "name": "Cyber Security Practicum", "start": "2026-08-24", "end": "2026-12-11", "expectedPct": 0, "teams": []}, {"code": "CIS-3370", "name": "Intrusion Detection Systems", "start": "2026-08-24", "end": "2026-12-11", "expectedPct": 0, "teams": []}]};
 const TREND={};
+const SERIES={};
 const $=id=>document.getElementById(id);
-let cur=0;
+let cur=-1;
 function ring(p,color){const r=26,c=2*Math.PI*r;return `<div class="ring">
 <svg width="62" height="62"><circle cx="31" cy="31" r="${r}" fill="none" stroke="rgba(255,255,255,.07)" stroke-width="6"/>
 <circle cx="31" cy="31" r="${r}" fill="none" stroke="${color}" stroke-width="6" stroke-linecap="round"
@@ -101,26 +106,67 @@ ${ring(t.overallPct,colorFor(t.alert))}</div>
 <div class="cs"><div class="v">${t.openPRs}</div><div class="l">open PRs</div></div>
 <div class="cs"><div class="v">${t.lastCommit||'never'}</div><div class="l">last commit</div></div>
 </div>${trendLine(key)}</div>`}
-function detail(t){if(t.error)return '';
+function trendSvg(key){const s=SERIES[key];if(!s||s.length<2)return '';
+const w=620,h=90;
+const xs=s.map((p,i)=>5+i/(s.length-1)*(w-10));
+const ys=s.map(p=>h-10-(p[1]/100)*(h-20));
+const pts=xs.map((x,i)=>`${Math.round(x)},${Math.round(ys[i])}`).join(' ');
+return `<h4>Overall completion over time</h4>
+<svg viewBox="0 0 ${w} ${h}" style="width:100%;max-width:660px" role="img" aria-label="completion trend">
+<line x1="5" y1="${h-10}" x2="${w-5}" y2="${h-10}" stroke="rgba(255,255,255,.12)"></line>
+<polyline points="${pts}" fill="none" stroke="#8b5cf6" stroke-width="2.5"></polyline>
+${xs.map((x,i)=>`<circle cx="${Math.round(x)}" cy="${Math.round(ys[i])}" r="3.5" fill="#6366f1"><title>${s[i][0]}: ${s[i][1]}% (${s[i][2]} commits)</title></circle>`).join('')}
+</svg>`}
+function sortMem(i){const tb=document.getElementById('memtab');if(!tb)return;
+const rows=[...tb.rows].slice(1);
+const asc=tb.dataset.s==i?tb.dataset.a!=='1':true;tb.dataset.s=i;tb.dataset.a=asc?'1':'0';
+rows.sort((a,b)=>{const x=a.cells[i].innerText,y=b.cells[i].innerText;
+const nx=parseFloat(x),ny=parseFloat(y);
+return (isNaN(nx)||isNaN(ny)?x.localeCompare(y):nx-ny)*(asc?1:-1)});
+rows.forEach(r=>tb.appendChild(r))}
+function detail(t,key){if(t.error)return '';
 const mx=Math.max(...t.weeklyCommits,1);
 const rows=t.contributors.map(u=>`<tr><td>${u.login}</td><td>${u.commits}</td><td>${u.avgPerWeek}</td>
 <td>${u.longestGap}d</td><td>${u.last}</td>
 <td><span class="badge b-${u.status==='active'?'ok':u.status==='warn'?'warn':'danger'}">${u.status}</span></td></tr>`).join('');
+const heads=['member','commits','avg/week','longest gap','last commit','status']
+.map((h,i)=>`<th class="sortable" onclick="sortMem(${i})" title="click to sort">${h}</th>`).join('');
 const ms=t.milestones.map(m=>`<tr><td>${m.title}</td><td>${m.state}</td><td>${m.closed}/${m.closed+m.open}</td><td>${m.due||''}</td></tr>`).join('');
 const proj=t.project?`<h4>Project board: ${t.project.title} (${t.project.donePct}% done)</h4>
 <table><tr>${Object.entries(t.project.counts).map(([k,v])=>`<th>${k}</th>`).join('')}</tr>
 <tr>${Object.values(t.project.counts).map(v=>`<td>${v}</td>`).join('')}</tr></table>`:'';
 return `<h3>${t.name}</h3>
+${trendSvg(key)}
 <h4>Commits per week (last 16 weeks)</h4>
 <div class="spark">${t.weeklyCommits.map(v=>`<div style="height:${Math.round(v/mx*100)}%" title="${v}"></div>`).join('')}</div>
 <h4>Member activity</h4>
-<table><tr><th>member</th><th>commits</th><th>avg/week</th><th>longest gap</th><th>last commit</th><th>status</th></tr>${rows}</table>
+<table id="memtab"><tr>${heads}</tr>${rows}</table>
 ${ms?'<h4>Milestones</h4><table><tr><th>milestone</th><th>state</th><th>issues</th><th>due</th></tr>'+ms+'</table>':''}
 ${proj}`}
 function showDetail(i){const c=DATA.courses[cur];const t=c.teams[i];const d=$('detail');
-if(!d)return;d.innerHTML=detail(t);d.style.display='block';d.scrollIntoView({behavior:'smooth'})}
-function render(){const c=DATA.courses[cur];
-document.querySelectorAll('.tab').forEach((el,i)=>el.classList.toggle('active',i===cur));
+if(!d)return;d.innerHTML=detail(t,c.code+'/'+t.name);d.style.display='block';d.scrollIntoView({behavior:'smooth'})}
+function renderOverview(){
+document.querySelectorAll('.tab').forEach((el,i)=>el.classList.toggle('active',i===0));
+const risk=[];DATA.courses.forEach(c=>c.teams.forEach(t=>{if(!t.error&&t.alert!=='ok')risk.push({c,t})}));
+let html='';
+if(risk.length)html+=`<div class="alert"><b>Needs attention:</b> ${risk.map(r=>
+`${r.c.code} ${r.t.name} (${r.t.overallPct}% vs ${r.c.expectedPct}% expected)`).join(' &middot; ')}</div>`;
+html+='<div class="grid">'+DATA.courses.map((c,i)=>{
+const nr=c.teams.filter(t=>!t.error&&t.alert!=='ok').length;
+return `<div class="card ${nr?'warn':''}" onclick="cur=${i};render()">
+<div class="chead"><div><div class="cname">${c.code}</div>
+<div style="font-size:.75rem;color:var(--muted)">${c.name}</div></div>
+${ring(avg(c),nr?'#f59e0b':'#6366f1')}</div>
+<div class="cstats">
+<div class="cs"><div class="v">${c.teams.length}</div><div class="l">teams</div></div>
+<div class="cs"><div class="v">${nr}</div><div class="l">at risk</div></div>
+<div class="cs"><div class="v">${c.expectedPct}%</div><div class="l">expected</div></div>
+<div class="cs"><div class="v">${avg(c)}%</div><div class="l">class avg</div></div>
+</div></div>`}).join('')+'</div>';
+$('view').innerHTML=html}
+function render(){if(cur<0)return renderOverview();
+const c=DATA.courses[cur];
+document.querySelectorAll('.tab').forEach((el,i)=>el.classList.toggle('active',i===cur+1));
 let html=`<div class="pace"><div class="row"><span>${c.name} &middot; ${c.start} to ${c.end}</span>
 <span>expected pace this week: <b style="color:var(--amber)">${c.expectedPct}%</b></span></div>
 <div class="bar"><div class="fill" style="width:${avg(c)}%"></div>
@@ -133,7 +179,8 @@ $('view').innerHTML=html}
 function avg(c){const ok=c.teams.filter(t=>!t.error);if(!ok.length)return 0;
 return Math.round(ok.reduce((s,t)=>s+t.overallPct,0)/ok.length)}
 $('sub').textContent=`${DATA.term} - updated ${DATA.generated} - University of the Incarnate Word - Dr. Gonzalo D Parra`;
-$('tabs').innerHTML=DATA.courses.map((c,i)=>`<button class="tab" onclick="cur=${i};render()">${c.code}</button>`).join('');
+$('tabs').innerHTML='<button class="tab" onclick="cur=-1;render()">Overview</button>'+
+DATA.courses.map((c,i)=>`<button class="tab" onclick="cur=${i};render()">${c.code}</button>`).join('');
 document.addEventListener('keydown',e=>{if(e.key==='p'&&!e.ctrlKey&&!e.metaKey&&!e.altKey&&
 !/^(INPUT|TEXTAREA)$/.test(document.activeElement.tagName)){e.preventDefault();window.print()}});
 render();
