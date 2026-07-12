@@ -1,0 +1,140 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>UIW Team Project Progress</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{--bg:#07071a;--card:rgba(20,20,55,.75);--indigo:#6366f1;--purple:#8b5cf6;
+--emerald:#10b981;--amber:#f59e0b;--rose:#f43f5e;--txt:#e2e8f0;--txt2:#94a3b8;
+--muted:#64748b;--border:rgba(99,102,241,.18)}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;
+background:var(--bg);color:var(--txt);min-height:100vh;line-height:1.55}
+body::before{content:'';position:fixed;inset:0;z-index:-1;background:
+radial-gradient(ellipse at 20% 40%,rgba(99,102,241,.10),transparent 55%),
+radial-gradient(ellipse at 80% 10%,rgba(139,92,246,.08),transparent 50%)}
+header{padding:1.6rem 1.5rem 1rem;max-width:1200px;margin:0 auto}
+header h1{font-size:1.5rem;font-weight:800;
+background:linear-gradient(135deg,#e2e8f0,var(--indigo),var(--purple));
+-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+header .sub{color:var(--txt2);font-size:.85rem;margin-top:.2rem}
+.tabs{display:flex;gap:.4rem;flex-wrap:wrap;max-width:1200px;margin:.8rem auto 0;padding:0 1.5rem}
+.tab{padding:.4rem 1rem;border-radius:999px;border:1px solid transparent;font-size:.85rem;
+font-weight:600;cursor:pointer;color:var(--txt2);background:transparent;transition:all .2s}
+.tab:hover{background:rgba(99,102,241,.12);color:var(--txt)}
+.tab.active{background:linear-gradient(135deg,rgba(99,102,241,.25),rgba(139,92,246,.25));
+border-color:rgba(99,102,241,.45);color:var(--txt)}
+main{max-width:1200px;margin:0 auto;padding:1.2rem 1.5rem 3rem}
+.pace{background:var(--card);border:1px solid var(--border);border-radius:14px;
+padding:1rem 1.3rem;margin-bottom:1.2rem}
+.pace .row{display:flex;justify-content:space-between;font-size:.82rem;color:var(--txt2);margin-bottom:.4rem}
+.bar{height:10px;background:rgba(255,255,255,.07);border-radius:999px;position:relative;overflow:visible}
+.bar .fill{height:100%;border-radius:999px;background:linear-gradient(90deg,var(--indigo),var(--purple))}
+.bar .mark{position:absolute;top:-4px;width:2px;height:18px;background:var(--amber)}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:1.1rem}
+.card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:1.2rem;
+cursor:pointer;transition:all .2s}
+.card:hover{border-color:rgba(99,102,241,.45);transform:translateY(-2px)}
+.card.warn{border-color:rgba(245,158,11,.4)}.card.danger{border-color:rgba(244,63,94,.45)}
+.chead{display:flex;justify-content:space-between;align-items:flex-start;gap:.8rem}
+.cname{font-weight:700}
+.badge{font-size:.68rem;font-weight:700;padding:.15rem .55rem;border-radius:999px}
+.b-ok{background:rgba(16,185,129,.18);color:var(--emerald)}
+.b-warn{background:rgba(245,158,11,.18);color:var(--amber)}
+.b-danger{background:rgba(244,63,94,.18);color:var(--rose)}
+.ring{position:relative;width:62px;height:62px;flex:none}
+.ring svg{transform:rotate(-90deg)}
+.ring .pct{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+font-size:.82rem;font-weight:800}
+.cstats{display:grid;grid-template-columns:1fr 1fr;gap:.5rem;margin-top:.9rem}
+.cs{background:rgba(0,0,0,.25);border-radius:8px;padding:.45rem .7rem}
+.cs .v{font-weight:700}.cs .l{font-size:.68rem;color:var(--muted);text-transform:uppercase;letter-spacing:.05em}
+.delta{font-size:.75rem;margin-top:.6rem;color:var(--txt2)}
+.delta b.up{color:var(--emerald)}.delta b.dn{color:var(--rose)}
+.empty{color:var(--muted);padding:2.5rem;text-align:center;border:1px dashed var(--border);border-radius:14px}
+.detail{background:var(--card);border:1px solid var(--border);border-radius:16px;
+padding:1.3rem;margin-top:1.2rem;display:none}
+.detail h3{font-size:1.05rem;margin-bottom:.6rem}
+.detail h4{font-size:.8rem;color:var(--txt2);text-transform:uppercase;letter-spacing:.06em;margin:1.1rem 0 .4rem}
+table{border-collapse:collapse;width:100%;font-size:.83rem}
+th,td{text-align:left;padding:.45rem .6rem;border-bottom:1px solid rgba(255,255,255,.06)}
+th{color:var(--muted);font-size:.7rem;text-transform:uppercase;letter-spacing:.05em}
+.spark{display:flex;align-items:flex-end;gap:3px;height:56px;margin-top:.3rem}
+.spark div{flex:1;background:linear-gradient(180deg,var(--indigo),var(--purple));border-radius:3px 3px 0 0;min-height:2px}
+.legend{background:rgba(99,102,241,.07);border:1px solid var(--border);border-radius:14px;
+padding:1rem 1.3rem;margin-top:2rem;font-size:.83rem;color:var(--txt2)}
+.legend b{color:var(--txt)}
+.err{color:var(--rose);font-size:.85rem}
+@media print{body{background:#fff;color:#000}.card,.pace,.detail{border:1px solid #ccc;background:#fff}}
+</style></head><body>
+<header><h1>UIW Team Project Progress</h1>
+<div class="sub" id="sub"></div></header>
+<div class="tabs" id="tabs"></div>
+<main><div id="view"></div>
+<div class="legend"><b>How to read this and move forward.</b>
+Your ring is overall completion (closed issues, milestones, and project board Done items).
+The amber tick on the pace bar is where the class is expected to be this week.
+<b>Green</b> means on pace, <b>amber</b> means 15 points or more behind, <b>red</b> means 30 or more behind.
+To improve: commit steadily (small commits beat one giant push), open issues for every task and close
+them as you finish, keep your project board columns current, and make sure every member shows activity.
+Data refreshes weekly and whenever the registry changes.</div>
+</main>
+<script>const DATA={"term": "Fall 2026", "generated": "2026-07-12", "courses": [{"code": "CSEC-2300", "name": "Foundations of Cyber Security", "start": "2026-08-24", "end": "2026-12-11", "expectedPct": 0, "teams": []}, {"code": "CIS-3353", "name": "Cyber Security", "start": "2026-08-24", "end": "2026-12-11", "expectedPct": 0, "teams": []}, {"code": "CIS-4390", "name": "CIS Capstone", "start": "2026-08-24", "end": "2026-12-11", "expectedPct": 0, "teams": []}, {"code": "CSEC-4390", "name": "Cyber Security Practicum", "start": "2026-08-24", "end": "2026-12-11", "expectedPct": 0, "teams": []}, {"code": "CIS-3370", "name": "Intrusion Detection Systems", "start": "2026-08-24", "end": "2026-12-11", "expectedPct": 0, "teams": []}]};
+const TREND={};
+const $=id=>document.getElementById(id);
+let cur=0;
+function ring(p,color){const r=26,c=2*Math.PI*r;return `<div class="ring">
+<svg width="62" height="62"><circle cx="31" cy="31" r="${r}" fill="none" stroke="rgba(255,255,255,.07)" stroke-width="6"/>
+<circle cx="31" cy="31" r="${r}" fill="none" stroke="${color}" stroke-width="6" stroke-linecap="round"
+stroke-dasharray="${c}" stroke-dashoffset="${c*(1-p/100)}"/></svg><div class="pct">${p}%</div></div>`}
+function colorFor(a){return a==='danger'?'#f43f5e':a==='warn'?'#f59e0b':'#10b981'}
+function trendLine(key){const t=TREND[key];if(!t)return '';
+const f=(n,w)=>`<b class="${n>=0?'up':'dn'}">${n>=0?'+':''}${n}</b> ${w}`;
+return `<div class="delta">This week: ${f(t.commits,'commits')} &middot; ${f(t.closedIssues,'issues closed')} &middot; ${f(t.overallPct,'pts overall')}</div>`}
+function teamCard(c,t,i){if(t.error)return `<div class="card"><div class="cname">${t.name}</div><div class="err">${t.error}</div></div>`;
+const key=c.code+'/'+t.name;
+return `<div class="card ${t.alert}" onclick="showDetail(${i})">
+<div class="chead"><div><div class="cname">${t.name}</div>
+<span class="badge b-${t.alert}">${t.alert==='ok'?'on pace':t.alert==='warn'?'at risk':'behind'}</span></div>
+${ring(t.overallPct,colorFor(t.alert))}</div>
+<div class="cstats">
+<div class="cs"><div class="v">${t.totalCommits}</div><div class="l">commits</div></div>
+<div class="cs"><div class="v">${t.closedIssues}/${t.totalIssues}</div><div class="l">issues closed</div></div>
+<div class="cs"><div class="v">${t.openPRs}</div><div class="l">open PRs</div></div>
+<div class="cs"><div class="v">${t.lastCommit||'never'}</div><div class="l">last commit</div></div>
+</div>${trendLine(key)}</div>`}
+function detail(t){if(t.error)return '';
+const mx=Math.max(...t.weeklyCommits,1);
+const rows=t.contributors.map(u=>`<tr><td>${u.login}</td><td>${u.commits}</td><td>${u.avgPerWeek}</td>
+<td>${u.longestGap}d</td><td>${u.last}</td>
+<td><span class="badge b-${u.status==='active'?'ok':u.status==='warn'?'warn':'danger'}">${u.status}</span></td></tr>`).join('');
+const ms=t.milestones.map(m=>`<tr><td>${m.title}</td><td>${m.state}</td><td>${m.closed}/${m.closed+m.open}</td><td>${m.due||''}</td></tr>`).join('');
+const proj=t.project?`<h4>Project board: ${t.project.title} (${t.project.donePct}% done)</h4>
+<table><tr>${Object.entries(t.project.counts).map(([k,v])=>`<th>${k}</th>`).join('')}</tr>
+<tr>${Object.values(t.project.counts).map(v=>`<td>${v}</td>`).join('')}</tr></table>`:'';
+return `<h3>${t.name}</h3>
+<h4>Commits per week (last 16 weeks)</h4>
+<div class="spark">${t.weeklyCommits.map(v=>`<div style="height:${Math.round(v/mx*100)}%" title="${v}"></div>`).join('')}</div>
+<h4>Member activity</h4>
+<table><tr><th>member</th><th>commits</th><th>avg/week</th><th>longest gap</th><th>last commit</th><th>status</th></tr>${rows}</table>
+${ms?'<h4>Milestones</h4><table><tr><th>milestone</th><th>state</th><th>issues</th><th>due</th></tr>'+ms+'</table>':''}
+${proj}`}
+function showDetail(i){const c=DATA.courses[cur];const t=c.teams[i];const d=$('detail');
+if(!d)return;d.innerHTML=detail(t);d.style.display='block';d.scrollIntoView({behavior:'smooth'})}
+function render(){const c=DATA.courses[cur];
+document.querySelectorAll('.tab').forEach((el,i)=>el.classList.toggle('active',i===cur));
+let html=`<div class="pace"><div class="row"><span>${c.name} &middot; ${c.start} to ${c.end}</span>
+<span>expected pace this week: <b style="color:var(--amber)">${c.expectedPct}%</b></span></div>
+<div class="bar"><div class="fill" style="width:${avg(c)}%"></div>
+<div class="mark" style="left:${c.expectedPct}%"></div></div>
+<div class="row" style="margin-top:.4rem"><span>class average: ${avg(c)}%</span><span>${c.teams.length} team(s)</span></div></div>`;
+if(!c.teams.length)html+=`<div class="empty">No teams registered for ${c.code} yet.<br>
+Teams appear here automatically once the instructor registers their repository.</div>`;
+else html+=`<div class="grid">${c.teams.map((t,i)=>teamCard(c,t,i)).join('')}</div><div class="detail" id="detail"></div>`;
+$('view').innerHTML=html}
+function avg(c){const ok=c.teams.filter(t=>!t.error);if(!ok.length)return 0;
+return Math.round(ok.reduce((s,t)=>s+t.overallPct,0)/ok.length)}
+$('sub').textContent=`${DATA.term} - updated ${DATA.generated} - University of the Incarnate Word - Dr. Gonzalo D Parra`;
+$('tabs').innerHTML=DATA.courses.map((c,i)=>`<button class="tab" onclick="cur=${i};render()">${c.code}</button>`).join('');
+document.addEventListener('keydown',e=>{if(e.key==='p'&&!e.ctrlKey&&!e.metaKey&&!e.altKey&&
+!/^(INPUT|TEXTAREA)$/.test(document.activeElement.tagName)){e.preventDefault();window.print()}});
+render();
+</script></body></html>
